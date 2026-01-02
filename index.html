@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
+    <link rel="manifest" href="manifest.json">
     <title>健身计时器</title>
     <style>
         body {
@@ -15,33 +15,40 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; margin: 0; background-color: #121212; color: white; overflow: hidden;
         }
-        #timer-display { font-size: 8rem; font-weight: bold; margin-bottom: 2rem; color: #00ff88; }
-        .button-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; width: 90%; }
+        #timer-display { font-size: 8rem; font-weight: bold; margin-bottom: 2rem; color: #00ff88; font-variant-numeric: tabular-nums; }
+        .button-group { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* 两列布局，四个按钮正好排成 2x2 */
+            gap: 20px; 
+            width: 85%; 
+        }
         button {
-            padding: 20px 10px; font-size: 1.2rem; border: none; border-radius: 15px;
-            background: #333; color: white; cursor: pointer;
+            padding: 25px 10px; font-size: 1.3rem; border: none; border-radius: 15px;
+            background: #333; color: white; cursor: pointer; transition: background 0.2s;
         }
         button:active { transform: scale(0.95); background: #444; }
-        .stop-btn { margin-top: 30px; background: #ff4444 !important; grid-column: span 3; }
-        .status { margin-top: 20px; color: #888; }
+        .stop-btn { margin-top: 30px; background: #ff4444 !important; grid-column: span 2; }
+        .status { margin-top: 25px; color: #888; font-size: 1.1rem; }
     </style>
 </head>
 <body>
     <div id="timer-display">00</div>
+    
     <div class="button-group">
         <button onclick="startTimer(30)">30s</button>
-        <button onclick="startTimer(45)">45s</button>
-        <button onclick="startTimer(60)">60s</button>
+        <button onclick="startTimer(60)">1min</button>
+        <button onclick="startTimer(90)">1.5min</button>
+        <button onclick="startTimer(120)">2min</button>
+        
         <button class="stop-btn" onclick="resetTimer()">停止 / 重置</button>
     </div>
+    
     <div class="status" id="status-text">准备就绪</div>
-    <audio id="beep-sound" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTtvT197fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw=="></audio>
 
     <script>
         let countdown;
         const display = document.getElementById('timer-display');
         const statusText = document.getElementById('status-text');
-        const beep = document.getElementById('beep-sound');
 
         function startTimer(seconds) {
             clearInterval(countdown);
@@ -49,30 +56,40 @@
             statusText.innerText = "休息中...";
             display.style.color = "#00ff88";
             updateDisplay(timeLeft);
+            
             countdown = setInterval(() => {
                 timeLeft--;
                 updateDisplay(timeLeft);
-                if (timeLeft <= 0) { clearInterval(countdown); finish(); }
+                if (timeLeft <= 0) { 
+                    clearInterval(countdown); 
+                    finish(); 
+                }
             }, 1000);
         }
 
         function updateDisplay(seconds) {
-            display.innerText = seconds < 10 ? '0' + seconds : seconds;
+            let m = Math.floor(seconds / 60);
+            let s = seconds % 60;
+            display.innerText = m > 0 ? `${m}:${s < 10 ? '0'+s : s}` : (s < 10 ? '0'+s : s);
         }
 
         function finish() {
             display.style.color = "#ff4444";
-            statusText.innerText = "休息结束！";
-            beep.play();
-            if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+            statusText.innerText = "休息结束！开练！";
+            
+            // 强化版震动：震1000ms，停500ms，震1000ms，停500ms，震1000ms
+            if (navigator.vibrate) {
+                navigator.vibrate([1000, 500, 1000, 500, 1000]);
+            }
         }
 
         function resetTimer() {
             clearInterval(countdown);
+            if (navigator.vibrate) navigator.vibrate(0); // 停止震动
             display.innerText = "00";
+            display.style.color = "#00ff88";
             statusText.innerText = "准备就绪";
         }
     </script>
 </body>
-
 </html>
